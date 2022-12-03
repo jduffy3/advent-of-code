@@ -26,67 +26,101 @@ func main() {
   }
   defer file.Close()
 
+  s1, s2 := 0, 0
   scanner := bufio.NewScanner(file)
-
-  total_score := 0
   for scanner.Scan() {
-    strategy := scanner.Text()
-    
-    round := strings.Split(strategy, " ")
-    total_score += score(round)
+    round := strings.Split(scanner.Text(), " ")
+    you, me := round[0], round[1]
+    s1 += score(shape(you), strategy1(me))
+    s2 += score(shape(you), strategy2(you, me))
   }
-  fmt.Println(fmt.Sprintf("total_score %d", total_score))
+  fmt.Println(fmt.Sprintf("part one total_score %d", s1))
+  fmt.Println(fmt.Sprintf("part two total_score %d", s2))
 }
 
-func score(round []string) int {
-  shape_values := map[string]int{
-    "X": 1,
-    "Y": 2,
-    "Z": 3,
+func score(you, me int) int {
+  s := value(me)
+  switch result(you, me) {
+    case win: s += 6
+    case lose: s += 0
+    case draw: s += 3
   }
-
-  my_shape := round[1]
-  s := shape_values[my_shape]
-  switch result(round) {
-    case win: 
-      s += 6
-    case lose: 
-      s += 0
-    case draw: 
-      s += 3
-  }
-
   return s
 }
 
-func result(round []string) GameResult {
-  cipher := map[string]int{
-    "A": rock,
-    "X": rock,
-    "B": paper,
-    "Y": paper,
-    "C": scissors,
-    "Z": scissors,
+func value(shape int) int {
+  switch shape {
+    case rock: return 1
+    case paper: return 2
+    case scissors: return 3
+    default: return 0
   }
+}
 
-  opponent_shape, my_shape := cipher[round[0]], cipher[round[1]]
-  if opponent_shape == my_shape {
+func result(you, me int) GameResult {
+  if you == me {
     return draw
   }
 
-  switch my_shape { 
+  switch me { 
   case rock:
-    if opponent_shape == scissors {
+    if you == scissors {
       return win
     }
   case paper:
-    if opponent_shape == rock {
+    if you == rock {
       return win
     }
   case scissors:
-    if opponent_shape == paper {
+    if you == paper {
       return win
     }
   }
   return lose
 }
+
+func shape(letter string) int {
+  switch letter {
+    case "A": return rock
+    case "B": return paper
+    case "C": return scissors
+    default: return -1
+  }
+}
+
+func strategy1(letter string) int {
+  switch letter {
+    case "X": return rock
+    case "Y": return paper
+    case "Z": return scissors
+    default: return -1
+  }
+}
+
+func strategy2(you, letter string) int {
+  switch letter {
+    case "X": return lose_to(you)
+    case "Y": return shape(you) //DRAW
+    case "Z": return beat(you)
+    default: return -1
+  }
+}
+
+func lose_to(letter string) int {
+  switch shape(letter) {
+    case rock: return scissors
+    case paper: return rock
+    case scissors: return paper
+    default: return -1
+  }
+}
+
+func beat(letter string) int {
+  switch shape(letter) {
+    case rock: return paper
+    case paper: return scissors
+    case scissors: return rock
+    default: return -1
+  }
+}
+
