@@ -5,9 +5,10 @@ import (
   "fmt"
   "os"
   "strconv"
+  "sort"
 )
 
-const next_elf = ""
+const nextElf = ""
 
 func main() {
   file, err := os.Open(os.Args[1])
@@ -19,23 +20,26 @@ func main() {
 
   scanner := bufio.NewScanner(file)
 
-  max_calories, total_calories := 0, 0
+  var calories []int
+  totalCalories := 0
   for scanner.Scan() {
-    t := scanner.Text()
-    switch t {
-    case next_elf:
-      if total_calories > max_calories {
-        max_calories = total_calories
-      }
-      total_calories = 0
+    line := scanner.Text()
+    switch line {
+    case nextElf:
+      calories = append(calories, totalCalories)
+      totalCalories = 0
     default:
-      i, err := strconv.Atoi(t)
+      i, err := strconv.Atoi(line)
       if err != nil {
-        fmt.Println("error converting calories")
         os.Exit(1)
       }
-      total_calories += i
+      totalCalories += i
     }
   }
-  fmt.Println(fmt.Sprintf("max_calories: %d", max_calories))
+  sort.Sort(sort.Reverse(sort.IntSlice(calories)))
+  top3Total := 0
+  for _, v := range calories[:3] {
+    top3Total += v
+  }
+  fmt.Println(fmt.Sprintf("Top 3 total: %d", top3Total))
 }
