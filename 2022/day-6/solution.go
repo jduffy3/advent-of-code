@@ -14,31 +14,26 @@ func main() {
   defer file.Close()
 
   scanner := bufio.NewScanner(file)
-
   scanner.Scan()
+
   datastream := scanner.Text()
-
-  startOfPacket := findDistinctIndex(datastream, 4)
-  fmt.Printf("start of packet is %d\n", startOfPacket)
-
-  startOfMessage := findDistinctIndex(datastream, 14)
-  fmt.Printf("start of message is %d\n", startOfMessage)
+  fmt.Printf("start of packet is %d\n", lastDistinctIndex(datastream, 4))
+  fmt.Printf("start of message is %d\n", lastDistinctIndex(datastream, 14))
 }
 
-func findDistinctIndex(datastream string, numDistinct int) int {
+func lastDistinctIndex(datastream string, size int) int {
+  index := 0
   m := make(map[string]int)
-  start := 0
-  for len(m) < numDistinct {
-    letter := string(datastream[start])
-    lastUniqueIndex, seenBefore := m[letter]
-    if seenBefore {
+  for ; len(m) < size; index++ {
+    letter := string(datastream[index])
+
+    if lastSeenAt, seenBefore := m[letter]; seenBefore {
       m = make(map[string]int)
-      start = lastUniqueIndex + 1
-      m[string(datastream[start])] = start
+      index = lastSeenAt
     } else {
-      m[letter] = start
+      m[letter] = index
     }
-    start += 1
   }
-  return start
+  return index
 }
+
