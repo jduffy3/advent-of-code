@@ -1,23 +1,22 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
+  "bufio"
+  "fmt"
+  "os"
+  "strconv"
+  "strings"
 )
 
 func main() {
-	file, err := os.Open(os.Args[1])
-	if err != nil {
-		os.Exit(1)
-	}
-	defer file.Close()
+  file, err := os.Open(os.Args[1])
+  if err != nil {
+    os.Exit(1)
+  }
+  defer file.Close()
 
-	scanner := bufio.NewScanner(file)
   var forest [][]int
-  totalTrees := 0
+  scanner := bufio.NewScanner(file)
   for start := 0; scanner.Scan(); start++ {
     line := scanner.Text()
     trees := make([]int, len(line))
@@ -25,7 +24,6 @@ func main() {
       trees[i] = number(t)
     }
     forest = append(forest, trees)
-    totalTrees += len(trees)
   }
 
   count, maxScore := solve(forest)
@@ -34,49 +32,22 @@ func main() {
 }
 
 func solve(forest [][]int) (int, int) {
-  result, maxScore := NewGrid(len(forest)), 0
-  for x := 1; x < len(forest); x++ {
-    for y := 1; y < len(forest); y++ {
-      if !result[x][y] {
-        score := visibleFrom(x, y, forest, result)
-        if score > maxScore {
-          maxScore = score
-        }
+  count, maxScore := 0, 0
+  for x := 0; x < len(forest); x++ {
+    for y := 0; y < len(forest); y++ {
+      visible, score := check(x, y, forest)
+      if visible {
+        count++
+      }
+      if score > maxScore {
+        maxScore = score
       }
     }
   }
-  return count(result), maxScore
+  return count, maxScore
 }
 
-func NewGrid(size int) [][]bool {
-  grid := make([][]bool, size)
-  for x := range grid {
-    grid[x] = make([]bool, size)
-    for y := range grid {
-      // trees are visible on the outside
-      if x == 0 || x == (size - 1) || y == 0 || y == size - 1 {
-        grid[x][y] = true
-      } else {
-        grid[x][y] = false
-      }
-    }
-  }
-  return grid
-}
-
-func count(result [][]bool) int {
-  c := 0
-  for x := range result {
-    for y := range result {
-      if result[x][y] {
-        c++
-      }
-    }
-  }
-  return c
-}
-
-func visibleFrom(x, y int, forest [][]int, result [][]bool) int {
+func check(x, y int, forest [][]int) (bool, int) {
   tree := forest[x][y]
 
   left := true
@@ -118,8 +89,8 @@ func visibleFrom(x, y int, forest [][]int, result [][]bool) int {
       break
     } 
   }
-  result[x][y] = left || top || right || bottom 
-  return leftScore * topScore * rightScore * bottomScore
+
+  return (left || top || right || bottom), (leftScore * topScore * rightScore * bottomScore)
 }
 
 func number(v string) int {
