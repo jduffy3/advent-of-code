@@ -30,72 +30,18 @@ func main() {
 
   result := NewGrid(len(forest))
 
-  visibleFromOutside(forest, result)
-  fmt.Printf("Visible from outside: %d\n", count(result))
-  fmt.Printf("Highest scenic score: %d\n", maxScore(forest))
+  maxScore, count := visibleFromOutside(forest, result)
+  fmt.Printf("Visible from outside: %d\n", count)
+  fmt.Printf("Highest scenic score: %d\n", maxScore)
 }
 
-func maxScore(forest [][]int) int {
-  max := 0
-  for x := range forest {
-    for y := range forest {
-      s := score(x, y, forest)
-      if s > max {
-        max = s
-      }
-    }
-  }
-  return max
-}
-
-func score(row, col int, forest [][]int) int {
-  tree := forest[row][col]
-  left := 0
-  for start := col - 1; start >= 0; start-- {
-    left++
-    if forest[row][start] >= tree {
-      break
-    }
-  }
-
-  top := 0
-  for start := row - 1; start >= 0; start-- {
-    top++
-    if forest[start][col] >= tree {
-      break
-    }
-  }
-
-  right := 0
-  for start := col + 1; start < len(forest); start++ {
-    right++
-    if forest[row][start] >= tree {
-      break
-    }
-  }
-
-  bottom := 0
-  for start := row + 1; start < len(forest); start++ {
-    bottom++
-    if forest[start][col] >= tree {
-      break
-    }
-  }
-  return left * top * right * bottom 
-}
-
-func visibleFrom(x, y int, forest [][]int, result [][]bool) {
-  if x < 0 || x >= len(forest) {
-    return
-  }
-  if y < 0 || y >= len(forest) {
-    return
-  }
-
+func visibleFrom(x, y int, forest [][]int, result [][]bool) int {
   tree := forest[x][y]
 
   left := true
+  leftScore := 0
   for start := y - 1; start >= 0; start-- {
+    leftScore++
     if forest[x][start] >= tree {
       left = false
       break
@@ -103,7 +49,9 @@ func visibleFrom(x, y int, forest [][]int, result [][]bool) {
   }
 
   top := true
+  topScore := 0
   for start := x - 1; start >= 0; start-- {
+    topScore++
     if forest[start][y] >= tree {
       top = false
       break
@@ -111,7 +59,9 @@ func visibleFrom(x, y int, forest [][]int, result [][]bool) {
   }
 
   right := true
+  rightScore := 0
   for start := y + 1; start < len(forest); start++ {
+    rightScore++
     if forest[x][start] >= tree {
       right = false
       break
@@ -119,23 +69,31 @@ func visibleFrom(x, y int, forest [][]int, result [][]bool) {
   }
 
   bottom := true
+  bottomScore := 0
   for start := x + 1; start < len(forest); start++ {
+    bottomScore++
     if forest[start][y] >= tree {
       bottom = false
       break
     } 
   }
   result[x][y] = left || top || right || bottom 
+  return leftScore * topScore * rightScore * bottomScore
 }
 
-func visibleFromOutside(forest [][]int, result [][]bool) {
+func visibleFromOutside(forest [][]int, result [][]bool) (int, int) {
+  maxScore := 0
   for x := 1; x < len(forest); x++ {
     for y := 1; y < len(forest); y++ {
       if !result[x][y] {
-        visibleFrom(x, y, forest, result)
+        score := visibleFrom(x, y, forest, result)
+        if score > maxScore {
+          maxScore = score
+        }
       }
     }
   }
+  return maxScore, count(result)
 }
 
 func NewGrid(size int) [][]bool {
@@ -165,7 +123,6 @@ func count(result [][]bool) int {
   }
   return c
 }
-
 
 func number(v string) int {
   n, err := strconv.Atoi(v)
