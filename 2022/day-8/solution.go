@@ -28,11 +28,52 @@ func main() {
     totalTrees += len(trees)
   }
 
-  result := NewGrid(len(forest))
-
-  maxScore, count := visibleFromOutside(forest, result)
+  count, maxScore := solve(forest)
   fmt.Printf("Visible from outside: %d\n", count)
   fmt.Printf("Highest scenic score: %d\n", maxScore)
+}
+
+func solve(forest [][]int) (int, int) {
+  result, maxScore := NewGrid(len(forest)), 0
+  for x := 1; x < len(forest); x++ {
+    for y := 1; y < len(forest); y++ {
+      if !result[x][y] {
+        score := visibleFrom(x, y, forest, result)
+        if score > maxScore {
+          maxScore = score
+        }
+      }
+    }
+  }
+  return count(result), maxScore
+}
+
+func NewGrid(size int) [][]bool {
+  grid := make([][]bool, size)
+  for x := range grid {
+    grid[x] = make([]bool, size)
+    for y := range grid {
+      // trees are visible on the outside
+      if x == 0 || x == (size - 1) || y == 0 || y == size - 1 {
+        grid[x][y] = true
+      } else {
+        grid[x][y] = false
+      }
+    }
+  }
+  return grid
+}
+
+func count(result [][]bool) int {
+  c := 0
+  for x := range result {
+    for y := range result {
+      if result[x][y] {
+        c++
+      }
+    }
+  }
+  return c
 }
 
 func visibleFrom(x, y int, forest [][]int, result [][]bool) int {
@@ -79,49 +120,6 @@ func visibleFrom(x, y int, forest [][]int, result [][]bool) int {
   }
   result[x][y] = left || top || right || bottom 
   return leftScore * topScore * rightScore * bottomScore
-}
-
-func visibleFromOutside(forest [][]int, result [][]bool) (int, int) {
-  maxScore := 0
-  for x := 1; x < len(forest); x++ {
-    for y := 1; y < len(forest); y++ {
-      if !result[x][y] {
-        score := visibleFrom(x, y, forest, result)
-        if score > maxScore {
-          maxScore = score
-        }
-      }
-    }
-  }
-  return maxScore, count(result)
-}
-
-func NewGrid(size int) [][]bool {
-  grid := make([][]bool, size)
-  for x := range grid {
-    grid[x] = make([]bool, size)
-    for y := range grid {
-      // trees are visible on the outside
-      if x == 0 || x == (size - 1) || y == 0 || y == size - 1 {
-        grid[x][y] = true
-      } else {
-        grid[x][y] = false
-      }
-    }
-  }
-  return grid
-}
-
-func count(result [][]bool) int {
-  c := 0
-  for x := range result {
-    for y := range result {
-      if result[x][y] {
-        c++
-      }
-    }
-  }
-  return c
 }
 
 func number(v string) int {
